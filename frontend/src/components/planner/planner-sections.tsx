@@ -1,13 +1,12 @@
 "use client";
 
-import { BookOpen, ListChecks, ShieldQuestion, TrendingUp } from "lucide-react";
-import type { ReactNode } from "react";
-import type { EvaluateResponse, InvestmentsResponse, MarginalItem } from "@/lib/types";
+import { BookOpen, ShieldQuestion, TrendingUp } from "lucide-react";
+import type { InvestmentsResponse, MarginalItem } from "@/lib/types";
 import { MISSING, asNumber, asText, formatCurrency, formatFraction, formatPercentValue, splitIds } from "@/lib/format";
 import { DisclosureSection } from "@/components/ui/disclosure";
 import { EmptyState } from "@/components/ui/states";
 import { Kind, NamedIds, sentence } from "@/components/threats/threat-copy";
-import { METRIC_TARGET, METRIC_WHY, type Names, invName, joinNames, scenarioLabel, withNames } from "./planner-copy";
+import { METRIC_TARGET, METRIC_WHY, type Names, invName, scenarioLabel, withNames } from "./planner-copy";
 
 function signed(v: number | undefined) {
   if (v === undefined) return MISSING;
@@ -81,83 +80,6 @@ export function MarginalSection({ items, names, pending }: { items: MarginalItem
         </>
       )}
     </DisclosureSection>
-  );
-}
-
-/* ---------- What requirements must our plan meet? ---------- */
-
-export function RequirementsSection({ invest, evaluation, names, budget }: { invest: InvestmentsResponse; evaluation?: EvaluateResponse; names: Names; budget: number }) {
-  const c = invest.clinical_constraints;
-  // Investments that share a scenario + stage in the engine inputs (only the strongest counts).
-  const groups = new Map<string, Set<string>>();
-  for (const r of invest.control_effectiveness ?? []) {
-    const k = `${r.scenario_id}|${r.affected_metric}`;
-    groups.set(k, (groups.get(k) ?? new Set()).add(String(r.investment_id)));
-  }
-  const overlaps = [...groups].filter(([, ids]) => ids.size > 1);
-  const g = evaluation?.clinical_guardrails;
-
-  return (
-    <DisclosureSection
-      title="What requirements must our plan meet?"
-      icon={<ListChecks className="size-4" aria-hidden />}
-      summary="Budget, prerequisites, patient-safety limits and how overlapping protections are counted."
-    >
-      <dl className="grid gap-4 text-sm md:grid-cols-2">
-        <Req title="Stay within the budget">
-          First-year cost must not exceed your selected budget of {formatCurrency(budget)} (the model allows up to{" "}
-          {formatCurrency(invest.budget.budget_first_year_cash_usd)}).
-        </Req>
-        <Req title="Respect prerequisites">
-          {invest.dependencies.length ? (
-            <ul className="space-y-1">
-              {invest.dependencies.map((d) => (
-                <li key={d.investment_id}>
-                  <strong className="font-medium text-slate-800">{invName(names, d.investment_id)}</strong> requires{" "}
-                  {joinNames(d.requires.map((id) => invName(names, id)))}.
-                </li>
-              ))}
-            </ul>
-          ) : (
-            "None."
-          )}
-        </Req>
-        <Req title="Meet patient-safety limits">
-          Compared with today, the plan must bring diverted patients down to at most {formatFraction(c.max_annual_diverted_patients_fraction_of_baseline)} and
-          recovery days to at most {formatFraction(c.max_annual_recovery_days_fraction_of_baseline)}. The model&apos;s recommendation always meets these.
-          {g && (
-            <span className="mt-1 block text-xs text-slate-500">
-              Your plan: {g.satisfied ? "meets both limits." : `does not yet meet ${g.diverted_patients_satisfied ? "the recovery-day" : g.recovery_days_satisfied ? "the diverted-patient" : "either"} limit.`}
-            </span>
-          )}
-          {asText(c.rationale) && <span className="mt-1 block text-xs text-slate-500">{c.rationale}</span>}
-        </Req>
-        <Req title="Overlapping protections are not added up">
-          When two investments reduce the same thing for the same attack, the model counts only the stronger one.
-          {overlaps.length > 0 && (
-            <ul className="mt-1.5 space-y-1 text-xs text-slate-600">
-              {overlaps.map(([k, ids]) => {
-                const [scenario, metric] = k.split("|");
-                return (
-                  <li key={k}>
-                    {joinNames([...ids].map((id) => invName(names, id)))}: {METRIC_TARGET[metric] ?? metric} ({scenarioLabel(names, scenario)})
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Req>
-      </dl>
-    </DisclosureSection>
-  );
-}
-
-function Req({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div className="rounded-lg border border-slate-200 p-4">
-      <dt className="font-semibold text-slate-800">{title}</dt>
-      <dd className="mt-1 leading-relaxed text-slate-600">{children}</dd>
-    </div>
   );
 }
 

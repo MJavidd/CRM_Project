@@ -131,6 +131,7 @@ class SeveritiesResponse(BaseModel):
     severities: list[SeverityDetail]
     loss_variability: dict[str, Any]
     cost_driver_metadata: dict[str, Any]
+    unit_rates: dict[str, float]
     severity_parameters_note: str
     notes: list[str]
 

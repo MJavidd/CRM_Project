@@ -1,14 +1,13 @@
 "use client";
 
-import { CalendarClock, DollarSign, HeartPulse, Megaphone, Server, Users } from "lucide-react";
+import { CalendarClock, DollarSign, HeartPulse, Megaphone, Users } from "lucide-react";
 import { LOSS_COMPONENTS, SEVERITIES } from "@/lib/simulator";
-import type { AssetRecord, AttackStageModel, BaselineResponse, SeverityDetail, TriangularValue } from "@/lib/types";
-import { MISSING, asNumber, asText, formatCurrency, formatFraction, formatNumber, humanize, splitIds } from "@/lib/format";
-import { Badge, criticalityTone } from "@/components/ui/badge";
+import type { AttackStageModel, BaselineResponse, SeverityDetail, TriangularValue } from "@/lib/types";
+import { MISSING, asNumber, formatCurrency, formatFraction, formatNumber, humanize } from "@/lib/format";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
-import { DisclosureCard, DisclosureSection, InlineDisclosure } from "@/components/ui/disclosure";
+import { DisclosureSection, InlineDisclosure } from "@/components/ui/disclosure";
 import { EmptyState } from "@/components/ui/states";
-import { Detail, Kind, NamedIds, sentence } from "@/components/threats/threat-copy";
+import { Kind } from "@/components/threats/threat-copy";
 import { COST_PLAIN, SEVERITY_PLAIN } from "./sim-copy";
 
 const range = (t?: TriangularValue | null, unit = "") => (t ? `Range ${formatNumber(t.low, 1)}–${formatNumber(t.high, 1)}${unit}` : "Not provided");
@@ -303,65 +302,6 @@ export function CareImpact({ detail }: { detail: SeverityDetail }) {
           indicators into dollars.
         </p>
       </div>
-    </DisclosureSection>
-  );
-}
-
-/* ---------- Which hospital systems could be affected? ---------- */
-
-export function AffectedAssets({ assets, entryIds, assetNames }: { assets: AssetRecord[]; entryIds: Set<string>; assetNames: Map<string, string> }) {
-  const hours = (v: unknown) => (asNumber(v) !== null ? `${formatNumber(v)} hours` : MISSING);
-  return (
-    <DisclosureSection
-      title="Which hospital systems could be affected?"
-      icon={<Server className="size-4" aria-hidden />}
-      summary="Explore critical systems that ransomware could disrupt."
-    >
-      {assets.length === 0 ? (
-        <EmptyState message="No asset mapping for this scenario." />
-      ) : (
-        <>
-          <p className="mb-3 text-sm text-slate-600">
-            Systems this attack path can reach. Not every system would necessarily be hit in a given incident; the model does not simulate which ones fail.
-          </p>
-          <ul className="grid items-start gap-3 md:grid-cols-2">
-            {assets.map((a) => {
-              const crit = asText(a.criticality);
-              return (
-                <li key={String(a.asset_id)}>
-                  <DisclosureCard
-                    header={
-                      <>
-                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="font-medium text-slate-900">{asText(a.asset_name) ?? MISSING}</span>
-                          {crit && <Badge tone={criticalityTone(crit)}>{humanize(crit)}</Badge>}
-                          {entryIds.has(String(a.asset_id)) && <Badge tone="navy">Entry point</Badge>}
-                        </span>
-                        {asText(a.primary_service) && <span className="mt-1 block text-sm text-slate-500">{sentence(a.primary_service)}</span>}
-                      </>
-                    }
-                  >
-                    <dl className="@container divide-y divide-slate-50">
-                      <Detail label="Role in the hospital">{sentence(a.primary_service) ?? MISSING}</Detail>
-                      <Detail label="Ransomware exposure">{sentence(a.ransomware_exposure_note) ?? MISSING}</Detail>
-                      <Detail label="Target recovery time (RTO)">{hours(a.target_rto_hours)}</Detail>
-                      <Detail label="Severe-event recovery (illustrative)">{hours(a.illustrative_severe_event_recovery_hours)}</Detail>
-                      <Detail label="Depends on">
-                        <NamedIds ids={splitIds(a.depends_on_asset_ids)} names={assetNames} />
-                      </Detail>
-                      <Detail label="Quantity">{formatNumber(a.quantity)}</Detail>
-                      <Detail label="Reference">
-                        <span className="font-mono text-xs text-slate-400">{asText(a.asset_id)}</span>
-                      </Detail>
-                    </dl>
-                  </DisclosureCard>
-                </li>
-              );
-            })}
-          </ul>
-          <p className="mt-3 text-xs text-slate-500">Severe-event recovery hours are illustrative asset figures, not tied to the severity selected above.</p>
-        </>
-      )}
     </DisclosureSection>
   );
 }

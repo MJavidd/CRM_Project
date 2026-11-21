@@ -12,10 +12,11 @@ import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/states";
 import { BudgetControl } from "./budget-control";
 import { InvestmentCard } from "./investment-card";
+import { HipaaSection } from "@/components/overview/hipaa-section";
 import { PlanResults } from "./portfolio-summary";
 import { Recommendation } from "./strategy-comparison";
 import { PlannerMonteCarlo } from "./planner-monte-carlo";
-import { MarginalSection, MethodSection, RequirementsSection, WhySection } from "./planner-sections";
+import { MarginalSection, MethodSection, WhySection } from "./planner-sections";
 import { buildNames, invName, joinNames } from "./planner-copy";
 
 /** The engine's run-script example selection (shown by name, loaded only on request). */
@@ -203,6 +204,10 @@ export function InvestmentPlanner() {
 
       <Step id="plan-step-3" n={3} title="How much could our plan reduce ransomware risk?" hint="The risk model's estimate for your current selection.">
         <PlanResults evaluation={plan.evaluation} loading={plan.loading} names={names} />
+        {plan.evaluation && !plan.error && marginalById.size > 0 && (
+          <HipaaSection controls={hospital.data?.security_controls} loading={hospital.loading}
+            projects={invest.data.investments.filter((item) => selected.includes(item.id))} />
+        )}
       </Step>
 
       <Step id="plan-step-4" n={4} title="What would the model recommend?">
@@ -233,7 +238,6 @@ export function InvestmentPlanner() {
       <section aria-label="Supporting analysis" className="space-y-3">
         <WhySection invest={invest.data} selected={selected} names={names} />
         <MarginalSection items={plan.marginals?.items ?? []} names={names} pending={pending} />
-        <RequirementsSection invest={invest.data} evaluation={plan.evaluation} names={names} budget={budget} />
         <PlannerMonteCarlo selected={selected} budget={budget} />
         <MethodSection invest={invest.data} />
       </section>

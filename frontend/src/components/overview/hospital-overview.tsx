@@ -9,7 +9,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { ErrorState } from "@/components/ui/states";
 import { ExecutiveSnapshot } from "./executive-snapshot";
 import { AssetsSection, ControlsSection } from "./asset-control-sections";
-import { FinanceSection, MethodologySection, OperationsSection } from "./profile-sections";
+import { FinanceSection, OperationsSection } from "./profile-sections";
+import { HipaaSection } from "./hipaa-section";
 
 export function HospitalOverview() {
   const hospital = useApi<HospitalResponse>("/api/hospital");
@@ -55,13 +56,16 @@ export function HospitalOverview() {
       {hospital.error && <ErrorState error={hospital.error} onRetry={hospital.reload} title="Hospital profile unavailable" compact />}
 
       <ExecutiveSnapshot hospital={hospital} baseline={baseline} invest={invest} />
+      <Link href="/sources" className="inline-flex items-center gap-2 text-sm font-medium text-accent-700 underline underline-offset-4">
+        Where do these figures come from? <ArrowRight className="size-4" aria-hidden />
+      </Link>
 
       <div className="space-y-3">
         <AssetsSection assets={hospital.data?.assets} names={assetNames} loading={hospital.loading} />
         <ControlsSection controls={hospital.data?.security_controls} names={assetNames} scenarios={scenarios} loading={hospital.loading} />
         <OperationsSection profile={profile} loading={hospital.loading} />
         <FinanceSection profile={profile} invest={invest.data} loading={hospital.loading} />
-        <MethodologySection hospital={hospital.data} baseline={baseline.data} invest={invest.data} loading={hospital.loading} />
+        <HipaaSection controls={hospital.data?.security_controls} loading={hospital.loading} />
       </div>
 
       <ThreatsCta scenarioCount={scenarios.length || undefined} />

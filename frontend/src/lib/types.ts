@@ -206,6 +206,7 @@ export interface SeveritiesResponse {
   severities: SeverityDetail[];
   loss_variability: JsonRecord;
   cost_driver_metadata: JsonRecord;
+  unit_rates?: Record<string, number>;
   severity_parameters_note: string;
   notes: string[];
 }

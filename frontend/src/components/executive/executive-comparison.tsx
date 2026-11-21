@@ -13,6 +13,7 @@ import { ErrorState, Skeleton } from "@/components/ui/states";
 import { buildNames, withNames } from "@/components/planner/planner-copy";
 import { StrategyColumns, buildStrategies } from "./strategy-columns";
 import { ExecutiveConclusion } from "./executive-conclusion";
+import { HipaaSection } from "@/components/overview/hipaa-section";
 import { BadYearSection, FinancialDetails, HowRecommended, OperationsDetails } from "./executive-sections";
 
 function ChangeInvestments({ variant = "primary" }: { variant?: "primary" | "inverse" }) {
@@ -73,7 +74,7 @@ export function ExecutiveComparison() {
     );
   }
 
-  if (invest.error || !ready || budget === null) {
+  if (invest.error || !invest.data || !ready || budget === null) {
     return (
       <div className="space-y-8">
         {header}
@@ -140,6 +141,10 @@ export function ExecutiveComparison() {
 
       {data && (
         <section aria-label="Supporting detail" className="space-y-3">
+          {data.ciso && !decision.stale && (
+            <HipaaSection controls={hospital.data?.security_controls} loading={hospital.loading}
+              projects={invest.data.investments.filter((item) => selected.includes(item.id))} />
+          )}
           <FinancialDetails strategies={strategies} />
           <OperationsDetails strategies={strategies} />
           {!cisoInvalid && <BadYearSection selected={selected} budget={budget} names={names} />}

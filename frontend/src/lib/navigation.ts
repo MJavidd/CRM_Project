@@ -1,4 +1,4 @@
-import { Building2, ChartColumn, LayoutDashboard, Scale, ShieldAlert, Siren, Wallet, type LucideIcon } from "lucide-react";
+import { BookOpen, Building2, ChartColumn, LayoutDashboard, Scale, ShieldAlert, Siren, Wallet, type LucideIcon } from "lucide-react";
 
 export interface NavItem {
   href: string;
@@ -16,4 +16,5 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/analytics", label: "Risk Analytics", description: "Loss distributions and tail risk", icon: ChartColumn, status: "live" },
   { href: "/comparison", label: "Executive Comparison", description: "Baseline vs CISO vs optimized", icon: Scale, status: "live" },
   { href: "/dashboard", label: "Dashboard", description: "Explore completed simulations and loss distributions", icon: LayoutDashboard, status: "live" },
+  { href: "/sources", label: "Sources & Assumptions", description: "Trace the hospital figures, risk estimates and project budgets", icon: BookOpen, status: "live" },
 ];

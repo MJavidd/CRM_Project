@@ -6,11 +6,11 @@ import { ArrowRight } from "lucide-react";
 import { ApiError, apiPost, toApiError } from "@/lib/api";
 import { usePlanHydrated, usePlanStore } from "@/lib/plan-store";
 import { useApi } from "@/lib/use-api";
-import type { EvaluateResponse, HospitalResponse, InvestmentsResponse, ParameterSensitivityResponse, StressTestResponse } from "@/lib/types";
+import type { EvaluateResponse, HospitalResponse, InvestmentsResponse } from "@/lib/types";
 import { PageHeader } from "@/components/ui/page-header";
 import { ErrorState, Skeleton } from "@/components/ui/states";
 import { buildNames, withNames } from "@/components/planner/planner-copy";
-import { BeforeAfter, MethodSection, PlanContext, RemainingRisk, RemainingThreats, SectionHeading, StressSection } from "./residual-sections";
+import { BeforeAfter, MethodSection, PlanContext, RemainingRisk, RemainingThreats, SectionHeading } from "./residual-sections";
 import { ResidualMonteCarlo } from "./residual-monte-carlo";
 
 interface Fetched<T> {
@@ -57,7 +57,6 @@ export function RiskAnalytics() {
   const { plan } = usePlanStore();
   const invest = useApi<InvestmentsResponse>("/api/investments");
   const hospital = useApi<HospitalResponse>("/api/hospital");
-  const params = useApi<ParameterSensitivityResponse>("/api/sensitivity/parameters");
 
   const engineBudget = invest.data?.budget?.budget_first_year_cash_usd ?? null;
   const budget = engineBudget === null ? null : Math.min(plan.budget ?? engineBudget, engineBudget);
@@ -65,7 +64,6 @@ export function RiskAnalytics() {
   const selected = useMemo(() => plan.selected.filter((id) => catalogIds.has(id)), [plan.selected, catalogIds]);
   const ready = hydrated && budget !== null && invest.data !== undefined;
   const evaluation = usePlanPost<EvaluateResponse>("/api/portfolio/evaluate", selected, ready ? budget : null);
-  const stress = usePlanPost<StressTestResponse>("/api/sensitivity/stress", selected, ready ? budget : null);
   const names = useMemo(() => buildNames(invest.data, hospital.data), [invest.data, hospital.data]);
   const invalidMessage = evaluation.invalid ? withNames(evaluation.invalid, names) : undefined;
   const currentEval = evaluation.stale ? undefined : evaluation.data;
@@ -118,7 +116,6 @@ export function RiskAnalytics() {
           onRetry={() => {
             invest.reload();
             hospital.reload();
-            params.reload();
           }}
         />
       </div>
@@ -173,19 +170,6 @@ export function RiskAnalytics() {
       </section>
 
       <section aria-label="Assumptions and method" className="space-y-3">
-        {invalidMessage ? (
-          <p className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">What-if cases are available once the plan is valid.</p>
-        ) : (
-          <StressSection
-            data={stress.data}
-            loading={stress.loading}
-            error={stress.error}
-            stale={stress.stale}
-            onRetry={stress.retry}
-            params={params.data}
-            names={names}
-          />
-        )}
         <MethodSection />
       </section>
 

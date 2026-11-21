@@ -105,6 +105,7 @@ def severity_details() -> dict[str, Any]:
         "severities": items,
         "loss_variability": drivers.get("loss_variability", {}),
         "cost_driver_metadata": drivers.get("metadata", {}),
+        "unit_rates": drivers.get("unit_rates", {}),
         "severity_parameters_note": SEVERITY_PROBABILITY_NOTE,
         "notes": [
             "Loss amounts depend on incident severity only; they are not calibrated separately for each attack scenario.",

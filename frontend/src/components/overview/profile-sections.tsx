@@ -1,9 +1,9 @@
 "use client";
 
-import { BookOpen, Landmark, Layers } from "lucide-react";
+import { Landmark, Layers } from "lucide-react";
 import type { ReactNode } from "react";
-import type { HospitalResponse, InvestmentsResponse, BaselineResponse } from "@/lib/types";
-import { MISSING, asNumber, asText, formatCurrency, formatFraction, formatNumber, humanize, numericEntries } from "@/lib/format";
+import type { HospitalResponse, InvestmentsResponse } from "@/lib/types";
+import { asNumber, formatCurrency, formatNumber, humanize, numericEntries } from "@/lib/format";
 import { DisclosureSection } from "@/components/ui/disclosure";
 import { EmptyState, LoadingState, Skeleton } from "@/components/ui/states";
 
@@ -154,108 +154,6 @@ export function FinanceSection({ profile, invest, loading }: { profile?: Profile
             <span className="font-medium text-slate-800">new cybersecurity investment budget</span>, which is the only money the planner spends on additional
             ransomware defenses.
           </p>
-        </div>
-      )}
-    </DisclosureSection>
-  );
-}
-
-/* ---------------- Model Assumptions & Methodology ---------------- */
-
-export function MethodologySection({
-  hospital,
-  baseline,
-  invest,
-  loading,
-}: {
-  hospital?: HospitalResponse;
-  baseline?: BaselineResponse;
-  invest?: InvestmentsResponse;
-  loading: boolean;
-}) {
-  const profile = hospital?.hospital_profile;
-  const notes = Array.isArray(profile?.modeling_notes) ? profile.modeling_notes : [];
-  const clinical = invest?.clinical_constraints;
-  const investName = new Map((invest?.investments ?? []).map((i) => [i.id, i.name]));
-  const label = (id: string) => (investName.get(id) ? `${investName.get(id)} (${id})` : id);
-
-  return (
-    <DisclosureSection
-      title="Model Assumptions & Methodology"
-      icon={<BookOpen className="size-4" aria-hidden />}
-      summary="How this illustrative hospital profile was built, what the model covers and its limitations."
-    >
-      {loading ? (
-        <LoadingState rows={5} />
-      ) : (
-        <div className="space-y-6 text-sm leading-relaxed text-slate-600">
-          <div>
-            <h3 className="text-sm font-semibold text-slate-800">Illustrative hospital profile</h3>
-            <p className="mt-1">
-              {profile?.name ?? "This hospital network"} is a fictional organization. All hospital inputs and model outputs on this site are synthetic and
-              illustrative. They are not calibrated to a real institution and are not validated forecasts or clinical or financial advice.
-            </p>
-            <dl className="mt-2 grid gap-x-6 sm:grid-cols-2">
-              <Figure label="Profile ID" value={asText(profile?.organization_id) ?? MISSING} />
-              <Figure label="Baseline year" value={asNumber(profile?.baseline_year) !== null ? String(profile?.baseline_year) : MISSING} />
-              <Figure label="Data status" value={asText(profile?.data_status) ? humanize(String(profile?.data_status)) : MISSING} />
-              <Figure label="Model status" value={asText(hospital?.model_status) ? humanize(String(hospital?.model_status)) : MISSING} />
-            </dl>
-          </div>
-
-          {notes.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-slate-800">Modeling notes</h3>
-              <ul className="mt-1 space-y-1.5">
-                {notes.map((note, i) => (
-                  <li key={i} className="flex gap-2">
-                    <span className="mt-2 size-1 shrink-0 rounded-full bg-slate-400" aria-hidden />
-                    {note}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div>
-            <h3 className="text-sm font-semibold text-slate-800">How baseline risk is estimated</h3>
-            <p className="mt-1">
-              The baseline figures are analytic expected values for current controls with no new investment
-              {baseline?.method && <> (method: {baseline.method})</>}. Diverted patients are a clinical exposure indicator and are not monetized; reputation loss is
-              already included in the expected annual loss.
-            </p>
-          </div>
-
-          {invest && (
-            <div>
-              <h3 className="text-sm font-semibold text-slate-800">Investment planning rules</h3>
-              <dl className="mt-1">
-                <Figure label="Investment options" value={formatNumber(invest.investments?.length)} />
-                <Figure label="Max diverted patients vs baseline" value={formatFraction(clinical?.max_annual_diverted_patients_fraction_of_baseline)} />
-                <Figure label="Max recovery days vs baseline" value={formatFraction(clinical?.max_annual_recovery_days_fraction_of_baseline)} />
-                {invest.dependencies?.map((dep) => (
-                  <Figure key={dep.investment_id} label={`${label(dep.investment_id)} requires`} value={dep.requires.map(label).join(", ") || MISSING} />
-                ))}
-              </dl>
-              {asText(clinical?.rationale) && <p className="mt-2 text-xs text-slate-500">{clinical?.rationale}</p>}
-            </div>
-          )}
-
-          <div>
-            <h3 className="text-sm font-semibold text-slate-800">Scope and limitations</h3>
-            <ul className="mt-1 space-y-1.5">
-              {[
-                "Incident losses depend on severity only, not on the attack scenario.",
-                "The optimizer maximizes expected net benefit within the budget and clinical guardrails; it does not optimize for tail risk.",
-                "Investments are all-or-nothing and take effect immediately.",
-              ].map((t) => (
-                <li key={t} className="flex gap-2">
-                  <span className="mt-2 size-1 shrink-0 rounded-full bg-slate-400" aria-hidden />
-                  {t}
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
       )}
     </DisclosureSection>

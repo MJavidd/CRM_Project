@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BookOpen, CircleAlert, Pencil, SlidersHorizontal, Wallet } from "lucide-react";
+import { BookOpen, CircleAlert, Pencil, Wallet } from "lucide-react";
 import type { ApiError } from "@/lib/api";
-import type { AttackStageModel, EvaluateResponse, ParameterSensitivityResponse, StressTestResponse } from "@/lib/types";
+import type { AttackStageModel, EvaluateResponse } from "@/lib/types";
 import { formatCurrency, formatFraction, formatNumber, humanize } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, cn } from "@/components/ui/card";
-import { DisclosureCard, DisclosureSection, InlineDisclosure } from "@/components/ui/disclosure";
+import { DisclosureCard, DisclosureSection } from "@/components/ui/disclosure";
 import { ErrorState, LoadingState } from "@/components/ui/states";
 import { Kind } from "@/components/threats/threat-copy";
-import { type Names, invName, joinNames, withNames } from "@/components/planner/planner-copy";
+import { type Names, invName, joinNames } from "@/components/planner/planner-copy";
 
 export const BEFORE = "var(--chart-current)";
 export const AFTER = "var(--chart-funded)";
@@ -305,135 +305,6 @@ export function RemainingThreats({ models, evaluation, names }: { models: Attack
           );
         })}
       </ul>
-    </div>
-  );
-}
-
-/* ---------- What could change these estimates? ---------- */
-
-const STRESS: Record<string, { label: string; question: string }> = {
-  higher_attack_pressure: { label: "More frequent attacks", question: "What if attacks become more frequent?" },
-  lower_attack_pressure: { label: "Fewer attacks", question: "What if attacks become less frequent?" },
-  higher_incident_costs: { label: "Costlier incidents", question: "What if incidents cost more to recover from?" },
-  lower_incident_costs: { label: "Cheaper incidents", question: "What if incidents cost less?" },
-  weaker_control_effects: { label: "Weaker protections", question: "What if our protections work only half as well?" },
-  stronger_control_effects: { label: "Stronger protections", question: "What if our protections work better than assumed?" },
-  combined_adverse: { label: "Everything goes wrong", question: "More attacks, costlier incidents and weaker protections together" },
-};
-
-function multiplierText(m: StressTestResponse["cases"][number]["multipliers"]) {
-  const parts = [
-    m.attack_attempt_frequency !== 1 && `attacks ×${m.attack_attempt_frequency}`,
-    m.incident_financial_losses !== 1 && `incident costs ×${m.incident_financial_losses}`,
-    m.control_effectiveness !== 1 && `protection effect ×${m.control_effectiveness}`,
-  ].filter(Boolean);
-  return parts.join(", ");
-}
-
-export function StressSection({
-  data,
-  loading,
-  error,
-  stale,
-  onRetry,
-  params,
-  names,
-}: {
-  data?: StressTestResponse;
-  loading: boolean;
-  error?: ApiError;
-  stale: boolean;
-  onRetry: () => void;
-  params?: ParameterSensitivityResponse;
-  names: Names;
-}) {
-  const central = data?.cases.find((c) => c.key === "central");
-  const cases = (data?.cases ?? []).filter((c) => c.key !== "central");
-  const max = Math.max(1, ...(data?.cases ?? []).map((c) => c.portfolio_metrics.expected_annual_loss_usd));
-  const top = [...(params?.report.results ?? [])].filter((r) => (r.max_regret_usd ?? 0) > 0).sort((a, b) => (b.max_regret_usd ?? 0) - (a.max_regret_usd ?? 0)).slice(0, 3);
-
-  const describe = (key: string) => {
-    const [kind, id, field] = key.split(":");
-    if (kind === "risk") {
-      const stage = field.includes("initial_access") ? "chance of gaining access" : field.includes("deployment") ? "chance of deploying ransomware" : field.includes("spread") ? "chance of spreading" : field.includes("severe") ? "chance of becoming severe" : humanize(field);
-      return `${names.scenario.get(id) ?? humanize(id)}: ${stage}`;
-    }
-    if (kind === "investment") return `${invName(names, id)}: ${field.includes("capex") ? "one-time cost" : "yearly cost"}`;
-    return withNames(key, names);
-  };
-
-  return (
-    <DisclosureSection
-      title="What could change these estimates?"
-      icon={<SlidersHorizontal className="size-4" aria-hidden />}
-      summary="What if attacks become more frequent, incidents cost more, or protections work less well than assumed?"
-    >
-      <div className="space-y-4">
-        <p className="text-sm text-slate-600">
-          Remaining annual risk for your plan under the model&apos;s built-in what-if cases. These are hypothetical, not forecasts, and say nothing about how
-          likely each case is.
-        </p>
-        {error && <ErrorState error={error} onRetry={onRetry} title="What-if cases unavailable" compact />}
-        {loading && !data && <LoadingState rows={5} />}
-        {data && central && (
-          <div className={cn("space-y-2", (loading || stale) && "opacity-60 transition-opacity")}>
-            <Row label="Current assumptions" sub="Reference" value={central.portfolio_metrics.expected_annual_loss_usd} max={max} reference />
-            {cases.map((c) => (
-              <Row
-                key={c.key}
-                label={STRESS[c.key]?.question ?? humanize(c.key)}
-                sub={multiplierText(c.multipliers)}
-                value={c.portfolio_metrics.expected_annual_loss_usd}
-                max={max}
-                warn={!c.portfolio_guardrails_satisfied && central.portfolio_guardrails_satisfied ? "Patient-safety limits no longer met" : undefined}
-              />
-            ))}
-            <p className="pt-1 text-xs text-slate-500">
-              Bars show expected annual loss with your plan in place <Kind>Modeled (analytic)</Kind>
-            </p>
-          </div>
-        )}
-        {top.length > 0 && params && (
-          <InlineDisclosure label="Which single assumptions matter most for the recommendation?">
-            <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600">
-              <p>
-                The engine changes each of {params.report.results.length} assumptions by −50% and +50% and checks whether its recommended plan stays the best
-                choice. The most influential:
-              </p>
-              <ul className="mt-2 space-y-1">
-                {top.map((r) => (
-                  <li key={r.parameter_key} className="flex justify-between gap-3">
-                    <span>{describe(r.parameter_key)}</span>
-                    <span className="tabular shrink-0 font-medium text-slate-800">up to {formatCurrency(r.max_regret_usd, { compact: true })}/yr</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-2 text-xs text-slate-500">
-                The amount is the yearly net benefit given up by keeping the recommended plan if that assumption were wrong. It concerns the recommendation, not
-                your plan.
-              </p>
-            </div>
-          </InlineDisclosure>
-        )}
-      </div>
-    </DisclosureSection>
-  );
-}
-
-function Row({ label, sub, value, max, reference, warn }: { label: string; sub: string; value: number; max: number; reference?: boolean; warn?: string }) {
-  return (
-    <div className="grid gap-1 sm:grid-cols-[minmax(0,18rem)_minmax(0,1fr)_5rem] sm:items-center sm:gap-4">
-      <div className="text-sm">
-        <p className={cn("text-slate-800", reference && "font-semibold")}>{label}</p>
-        <p className="text-xs text-slate-500">
-          {sub}
-          {warn && <span className="text-amber-700"> · {warn}</span>}
-        </p>
-      </div>
-      <span className="h-3 rounded-r-[4px] bg-slate-50">
-        <span className="block h-full rounded-r-[4px]" style={{ width: `${Math.max((value / max) * 100, 0.5)}%`, background: reference ? "var(--color-navy-800)" : AFTER }} />
-      </span>
-      <span className="tabular text-sm font-semibold text-slate-900 sm:text-right">{formatCurrency(value, { compact: true })}</span>
     </div>
   );
 }

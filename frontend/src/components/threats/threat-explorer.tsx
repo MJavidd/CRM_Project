@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/states";
 import { ScenarioCards } from "./scenario-cards";
 import { AttackPathway } from "./attack-pathway";
+import { AttackMapping } from "./attack-mapping";
 import {
   ConsequencesSection,
   InvestmentsSection,
@@ -116,6 +117,7 @@ export function ThreatExplorer() {
 
       <div id="scenario-panel" role="tabpanel" aria-labelledby={`scenario-tab-${activeId}`} className="space-y-4">
         <AttackPathway view={view} model={model} openStage={openStage} onToggleStage={setOpenStage} assetNames={assetNames} />
+        <AttackMapping view={view} />
         <Storyline view={view} />
 
         <div className="space-y-3 pt-4">

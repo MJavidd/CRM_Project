@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useApi } from "@/lib/use-api";
 import type { BaselineResponse, HospitalResponse, SeveritiesResponse, SeverityKey } from "@/lib/types";
-import { asText, splitIds } from "@/lib/format";
+import { asText } from "@/lib/format";
 import { scenarioList } from "@/lib/threats";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/states";
@@ -13,7 +13,7 @@ import { ScenarioCards } from "@/components/threats/scenario-cards";
 import { AttackTimeline } from "./attack-timeline";
 import { SeveritySelector } from "./severity-selector";
 import { StageProbabilities } from "./stage-probabilities";
-import { AffectedAssets, CareImpact, FinancialBreakdown, ImpactSummary } from "./incident-impact";
+import { CareImpact, FinancialBreakdown, ImpactSummary } from "./incident-impact";
 import { MonteCarloPanel } from "./monte-carlo-panel";
 
 function PlannerLink({ variant = "primary" }: { variant?: "primary" | "inverse" }) {
@@ -56,15 +56,6 @@ export function CrisisSimulator() {
   const stageModel = hospital.data?.attack_stage_model?.find((m) => m.scenario_id === activeId);
   const detail = severities.data?.severities.find((s) => s.severity === severity);
   const sequence = Array.isArray(scenario?.sequence) ? scenario.sequence.filter((s): s is string => typeof s === "string") : [];
-
-  const { assets, entryIds, assetNames } = useMemo(() => {
-    const byId = new Map((hospital.data?.assets ?? []).map((a) => [String(a.asset_id), a]));
-    const entry = splitIds(scenario?.entry_asset_ids);
-    const affected = splitIds(scenario?.potentially_affected_asset_ids);
-    const ordered = [...new Set([...entry, ...affected])].flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
-    const names = new Map((hospital.data?.assets ?? []).map((a) => [String(a.asset_id), asText(a.asset_name) ?? ""]));
-    return { assets: ordered, entryIds: new Set(entry), assetNames: names };
-  }, [hospital.data, scenario]);
 
   const selectScenario = (id: string) => {
     setSelected(id);
@@ -166,7 +157,6 @@ export function CrisisSimulator() {
               <CareImpact detail={detail} />
             </>
           )}
-          <AffectedAssets assets={assets} entryIds={entryIds} assetNames={assetNames} />
         </section>
       </div>
 
