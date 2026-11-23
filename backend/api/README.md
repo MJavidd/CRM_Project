@@ -10,7 +10,7 @@ backend/.venv/bin/python -m pip install -r backend/requirements.txt
 backend/.venv/bin/uvicorn backend.api.main:app --reload --port 8000
 ```
 
-Interactive docs: http://localhost:8000/docs. CORS allows `http://localhost:3000` and `http://127.0.0.1:3000`.
+Interactive docs: http://localhost:8000/docs. CORS allows `http://localhost:3000`, `http://127.0.0.1:3000` and `https://crm-project-phi-two.vercel.app`.
 
 ## Tests
 
