@@ -8,6 +8,7 @@ import { formatCurrency, formatNumber } from "@/lib/format";
 import { usePlanHydrated, usePlanStore } from "@/lib/plan-store";
 import type { BaselineResponse, SimulateRequest } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
+import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { ErrorState, LoadingState } from "@/components/ui/states";
 import { FairExposure, IncidentMix, LossDistribution, PortfolioTable } from "./charts";
@@ -40,7 +41,7 @@ function RunSettings({ onComplete }: { onComplete: (run: DashboardRun) => void }
       <h2>Run settings</h2>
       <p className="dash-caption">Current planner selection · {plan.selected.length} investments · {plan.budget ? formatCurrency(plan.budget) : "Model budget"}</p>
       <fieldset disabled={running} className="dash-controls mt-4">
-        <label>Simulated years<select value={years} onChange={e => setYears(Number(e.target.value))}>
+        <label>One-year trials<select value={years} onChange={e => setYears(Number(e.target.value))}>
           {[1000, 5000, 20000, 50000].map(n => <option key={n} value={n}>{formatNumber(n)}</option>)}
         </select></label>
         <label>Random seed<input type="number" min={0} max={4294967295} step={1} required value={seed} onChange={e => setSeed(e.target.value)} /></label>
@@ -93,14 +94,24 @@ function RunCharts({ id }: { id: number }) {
               onClick={() => setHorizon(Number(key))}>{key} {key === "1" ? "year" : "years"}</button>)}</div>
           </fieldset>
         </div>
-        <p className="dash-caption">{formatNumber(run.years)} simulated years · Seed {run.seed} · {run.uncertainty_mode === "central" ? "Central probabilities" : "Sampled probabilities"}<br />
-          {formatCurrency(run.budget_usd, { compact: true })} budget · {item.investments.length ? item.investments.join(", ") : "No new investments"}</p>
+        <div className="dash-caption space-y-1">
+          <p>{formatNumber(run.years)} one-year trials · Seed {run.seed} · {run.uncertainty_mode === "central" ? "Central probabilities" : "Sampled probabilities"}<br />
+            {formatCurrency(run.budget_usd)} budget · {item.investments.length ? item.investments.join(", ") : "No new investments"}</p>
+          {run.ciso_first_year_cash_usd != null && (
+            <p className="flex flex-wrap items-center gap-2">
+              <span>Your plan’s first-year cost {formatCurrency(run.ciso_first_year_cash_usd)}</span>
+              {run.ciso_over_budget_usd !== null && run.ciso_over_budget_usd > 0 && (
+                <Badge tone="danger">Over budget by {formatCurrency(run.ciso_over_budget_usd)}</Badge>
+              )}
+            </p>
+          )}
+        </div>
       </div>
       <div className="dash-chart-grid" key={`${strategy}-${horizon}`}>
         <LossDistribution data={sample} thresholds={run.loss_thresholds_usd} />
         <IncidentMix data={sample} />
       </div>
-      {horizon > 1 && <p className="dash-caption">Each period sums {horizon} consecutive simulated years. {formatNumber(sample.periods)} complete, non-overlapping periods{unused ? ` · ${unused} trailing ${unused === 1 ? "year" : "years"} excluded` : ""}.</p>}
+      {horizon > 1 && <p className="dash-caption">Each {horizon}-year outcome sums {horizon} one-year trials. {formatNumber(sample.periods)} complete, non-overlapping outcomes{unused ? ` · ${formatNumber(unused)} unused ${unused === 1 ? "trial" : "trials"} excluded` : ""}.</p>}
       <FairExposure run={run} strategy={strategy} onSelect={setStrategy} />
       <PortfolioTable run={run} horizon={horizon} strategy={strategy} onSelect={setStrategy} />
     </>
@@ -143,7 +154,7 @@ export function Dashboard() {
       {selected && <>
         <div className="dash-run-picker">
           <label>Completed run<select value={selected.id} onChange={e => setId(Number(e.target.value))}>
-            {runs?.map(r => <option key={r.id} value={r.id}>Run {r.id} · {new Date(r.completed_at).toLocaleString()} · {formatNumber(r.years)} years</option>)}
+            {runs?.map(r => <option key={r.id} value={r.id}>Run {r.id} · {new Date(r.completed_at).toLocaleString()} · {formatNumber(r.years)} one-year trials</option>)}
           </select></label>
           <button type="button" aria-label="Refresh completed runs" title="Refresh completed runs" onClick={() => setVersion(v => v + 1)}><RefreshCw size={16} /></button>
         </div>

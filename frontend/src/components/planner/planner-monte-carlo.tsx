@@ -52,16 +52,16 @@ export function PlannerMonteCarlo({ selected, budget }: { selected: string[]; bu
     <DisclosureSection
       title="How would our investment choices perform in a bad ransomware year?"
       icon={<Sigma className="size-4" aria-hidden />}
-      summary="Compare our current protections, your selected investments, and the model-recommended plan across thousands of simulated years."
+      summary="Compare our current protections, your selected investments, and the model-recommended plan across thousands of one-year trials."
     >
       <div className="space-y-4">
         <p className="text-sm text-slate-600">
-          Averages hide bad years. This simulation runs the same random years for all three options, so the difference between them is fair.{" "}
+          Averages hide bad years. Each one-year trial uses the same simulated attack activity for all three options.{" "}
           <Kind>Simulated · Monte Carlo</Kind>
         </p>
         <div className="flex flex-wrap items-end gap-3">
           <label className="text-sm">
-            <span className="font-medium text-slate-700">Years to simulate</span>
+            <span className="font-medium text-slate-700">One-year trials</span>
             <select
               value={years}
               onChange={(e) => setYears(Number(e.target.value))}
@@ -129,7 +129,7 @@ export function PlannerMonteCarlo({ selected, budget }: { selected: string[]; bu
               </table>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-slate-500">
-              {formatNumber(result.res.simulated.years)} simulated years. {result.res.simulated.note} Simulated means differ slightly from the analytic values
+              {formatNumber(result.res.simulated.years)} one-year trials. {result.res.simulated.note} Simulated means differ slightly from the analytic values
               above because of sampling.
             </p>
           </div>

@@ -245,6 +245,14 @@ class StrategyResult(BaseModel):
     annualized_net_benefit_usd: Optional[float] = None
 
 
+class PeriodLossSummary(BaseModel):
+    periods: int
+    mean_loss_usd: float
+    median_loss_usd: float
+    p90_loss_usd: float
+    p95_loss_usd: float
+
+
 class SimulatedBlock(BaseModel):
     result_type: Literal["simulated_monte_carlo"]
     method: str
@@ -253,6 +261,7 @@ class SimulatedBlock(BaseModel):
     uncertainty_mode: str
     note: str
     strategies: dict[str, StrategyResult]
+    baseline_horizons: dict[int, PeriodLossSummary]
 
 
 class AnalyticBlock(BaseModel):
@@ -301,6 +310,8 @@ class RunSummary(BaseModel):
 
 class DashboardRun(RunSummary):
     budget_usd: float
+    ciso_first_year_cash_usd: Optional[float] = None
+    ciso_over_budget_usd: Optional[float] = None
     loss_thresholds_usd: list[int]
     strategies: dict[str, DashboardStrategy]
 

@@ -322,7 +322,7 @@ export function MethodSection() {
         <li>
           Remaining risk, incidents and patient figures are the risk engine&apos;s analytic expected values for your plan, using average probabilities and costs.
         </li>
-        <li>Bad-year figures come from the Monte Carlo simulation, which replays thousands of random years. Its average differs slightly by sampling.</li>
+        <li>Bad-year figures come from thousands of one-year Monte Carlo trials. The simulated average can vary with the random sample.</li>
         <li>Investments lower specific attack steps by assumed amounts; overlapping protections are not added up.</li>
         <li>All inputs are synthetic and illustrative, and the results are not validated forecasts.</li>
       </ul>

@@ -87,7 +87,7 @@ export function MonteCarloAnalysis({
       <CardHeader
         title="Annual Monte Carlo analysis"
         icon={<Sigma className="size-4" aria-hidden />}
-        description="Thousands of simulated years of ransomware activity. Each strategy faces the same simulated attacks."
+        description="Each one-year trial uses the same simulated attack activity to compare all strategies."
         actions={
           <>
             <Badge tone="accent">Simulated · Monte Carlo</Badge>
@@ -98,7 +98,7 @@ export function MonteCarloAnalysis({
       <CardBody className="space-y-6">
         <div className="flex flex-wrap items-end gap-3">
           <label className="text-sm">
-            <span className="font-medium text-slate-700">Simulated years</span>
+            <span className="font-medium text-slate-700">One-year trials</span>
             <select
               value={years}
               onChange={(e) => setYears(Number(e.target.value))}
@@ -168,7 +168,7 @@ export function MonteCarloAnalysis({
                 Annual loss statistics
               </h3>
               <p className="mt-0.5 text-xs text-slate-500">
-                {formatNumber(result.res.simulated.years)} simulated years · seed {result.res.simulated.seed} ·{" "}
+                {formatNumber(result.res.simulated.years)} one-year trials · seed {result.res.simulated.seed} ·{" "}
                 {result.res.simulated.uncertainty_mode === "central" ? "central" : "epistemic draw"} mode
               </p>
               <div className="mt-4">
@@ -283,13 +283,13 @@ function PercentileExplainer() {
       <div>
         <p className="font-semibold">Median vs mean</p>
         <p className="mt-1 text-xs leading-relaxed text-navy-900/80">
-          In most simulated years little or nothing happens, while a few years are very costly. That pulls the mean well above the median.
+          A few costly one-year trials can pull the mean well above the median.
         </p>
       </div>
       <div>
         <p className="font-semibold">P90 = a 1-in-10 bad year</p>
         <p className="mt-1 text-xs leading-relaxed text-navy-900/80">
-          In 90% of simulated years, the hospital&apos;s <strong>total ransomware loss for the year</strong> stays below this amount. One year in ten is worse.
+          This is the 90th percentile of <strong>total annual ransomware loss</strong> across the one-year trials.
         </p>
       </div>
       <div>

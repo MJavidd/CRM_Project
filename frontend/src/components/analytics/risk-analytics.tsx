@@ -6,12 +6,13 @@ import { ArrowRight } from "lucide-react";
 import { ApiError, apiPost, toApiError } from "@/lib/api";
 import { usePlanHydrated, usePlanStore } from "@/lib/plan-store";
 import { useApi } from "@/lib/use-api";
-import type { EvaluateResponse, HospitalResponse, InvestmentsResponse } from "@/lib/types";
+import type { EvaluateResponse, HospitalResponse, InvestmentsResponse, StressTestResponse } from "@/lib/types";
 import { PageHeader } from "@/components/ui/page-header";
-import { ErrorState, Skeleton } from "@/components/ui/states";
+import { ErrorState, LoadingState, Skeleton } from "@/components/ui/states";
 import { buildNames, withNames } from "@/components/planner/planner-copy";
 import { BeforeAfter, MethodSection, PlanContext, RemainingRisk, RemainingThreats, SectionHeading } from "./residual-sections";
 import { ResidualMonteCarlo } from "./residual-monte-carlo";
+import { StressResults } from "./stress-results";
 
 interface Fetched<T> {
   data?: T;
@@ -34,7 +35,7 @@ function usePlanPost<T>(path: string, selected: string[], budget: number | null)
     const id = ++seq.current;
     const [ids] = JSON.parse(key) as [string[], number];
     const t = setTimeout(() => {
-      setState((s) => ({ ...s, loading: true, error: undefined }));
+      setState({ loading: true, key });
       apiPost<T>(path, { investment_ids: ids, budget_usd: budget }).then(
         (data) => id === seq.current && setState({ data, loading: false, key }),
         (e: unknown) => {
@@ -42,7 +43,7 @@ function usePlanPost<T>(path: string, selected: string[], budget: number | null)
           const err = toApiError(e);
           const d = err.detail as { error?: string; message?: string } | undefined;
           if (err.status === 400 && d?.error === "invalid_portfolio") setState({ invalid: d.message ?? "Invalid plan", loading: false, key });
-          else setState((s) => ({ ...s, error: err, loading: false }));
+          else setState({ error: err, loading: false, key });
         },
       );
     }, 200);
@@ -67,6 +68,7 @@ export function RiskAnalytics() {
   const names = useMemo(() => buildNames(invest.data, hospital.data), [invest.data, hospital.data]);
   const invalidMessage = evaluation.invalid ? withNames(evaluation.invalid, names) : undefined;
   const currentEval = evaluation.stale ? undefined : evaluation.data;
+  const stress = usePlanPost<StressTestResponse>("/api/sensitivity/stress", selected, currentEval ? budget : null);
 
   const header = (
     <PageHeader
@@ -159,7 +161,7 @@ export function RiskAnalytics() {
 
       <section aria-labelledby="rr-4" className="space-y-3">
         <SectionHeading id="rr-4" n={4} title="How costly could a bad ransomware year become?">
-          What thousands of simulated years say about the residual risk of {selected.length ? "your plan" : "today's protections"}.
+          What thousands of one-year trials say about the residual risk of {selected.length ? "your plan" : "today's protections"}.
         </SectionHeading>
         <ResidualMonteCarlo
           selected={selected}
@@ -168,6 +170,19 @@ export function RiskAnalytics() {
           waiting={!invalidMessage && !currentEval && !evaluation.error}
         />
       </section>
+
+      {currentEval && (
+        <section aria-labelledby="rr-5" className="space-y-3">
+          <SectionHeading id="rr-5" n={5} title="Stress testing" />
+          {stress.stale || stress.loading ? (
+            <LoadingState label="Loading stress tests" />
+          ) : stress.data ? (
+            <StressResults report={stress.data} />
+          ) : (
+            <ErrorState error={stress.error ?? new Error(stress.invalid ?? "Stress test results are unavailable.")} onRetry={stress.retry} compact />
+          )}
+        </section>
+      )}
 
       <section aria-label="Assumptions and method" className="space-y-3">
         <MethodSection />

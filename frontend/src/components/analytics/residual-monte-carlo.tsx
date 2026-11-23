@@ -74,10 +74,10 @@ export function ResidualMonteCarlo({
   const empty = selected.length === 0;
 
   const stats: { label: string; hint: string; f: (x: StrategyResult) => number }[] = [
-    { label: "Average year", hint: "The average loss across simulated years", f: (x) => x.mean_annual_loss_usd },
-    { label: "Typical year (median)", hint: "Half of simulated years have losses below this", f: (x) => x.median_annual_loss_usd },
-    { label: "Bad year (P90)", hint: "Only 10% of simulated years exceed this", f: (x) => x.p90_annual_loss_usd },
-    { label: "Very bad year (P95)", hint: "Only 5% of simulated years exceed this", f: (x) => x.p95_annual_loss_usd },
+    { label: "Average year", hint: "The average loss across one-year trials", f: (x) => x.mean_annual_loss_usd },
+    { label: "Typical year (median)", hint: "50th percentile of annual loss", f: (x) => x.median_annual_loss_usd },
+    { label: "Bad year (P90)", hint: "90th percentile of annual loss", f: (x) => x.p90_annual_loss_usd },
+    { label: "Very bad year (P95)", hint: "95th percentile of annual loss", f: (x) => x.p95_annual_loss_usd },
   ];
 
   return (
@@ -87,7 +87,7 @@ export function ResidualMonteCarlo({
           <Building2 className="mt-0.5 size-4 shrink-0 text-navy-600" aria-hidden />
           <p>
             <strong className="font-semibold">Whole hospital, all three attack scenarios combined,</strong> with {empty ? "today's protections" : "your plan in place"}.
-            Each simulated year can contain several incidents or none.
+            Each one-year trial can contain several incidents or none.
           </p>
         </div>
 
@@ -103,7 +103,7 @@ export function ResidualMonteCarlo({
           </button>
           {result && (
             <span className="text-xs text-slate-500">
-              {formatNumber(result.res.simulated.years)} simulated years · seed {result.res.simulated.seed}
+              {formatNumber(result.res.simulated.years)} one-year trials · seed {result.res.simulated.seed}
             </span>
           )}
         </div>
@@ -146,8 +146,8 @@ export function ResidualMonteCarlo({
 
             <p className="text-sm text-slate-600">
               Even with {empty ? "today's protections" : "your plan"}, at least one disruptive incident happened in{" "}
-              <span className="tabular font-semibold text-slate-800">{formatFraction(mine.probability_any_disruptive_event, 0)}</span> of simulated years, and
-              one year in twenty cost more than <span className="tabular font-semibold text-slate-800">{formatCurrency(mine.p95_annual_loss_usd, { compact: true })}</span>.
+              <span className="tabular font-semibold text-slate-800">{formatFraction(mine.probability_any_disruptive_event, 0)}</span> of one-year trials, and
+              the 95th percentile of annual loss was <span className="tabular font-semibold text-slate-800">{formatCurrency(mine.p95_annual_loss_usd, { compact: true })}</span>.
             </p>
 
             <InlineDisclosure label="More results">
@@ -165,7 +165,7 @@ export function ResidualMonteCarlo({
           <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4">
             <div className="grid gap-3 sm:grid-cols-3">
               <label className="text-sm">
-                <span className="font-medium text-slate-700">Years to simulate</span>
+                <span className="font-medium text-slate-700">One-year trials</span>
                 <select value={years} onChange={(e) => setYears(Number(e.target.value))} className={FIELD}>
                   {[5_000, 20_000, 50_000].map((y) => (
                     <option key={y} value={y}>
@@ -193,8 +193,8 @@ export function ResidualMonteCarlo({
               </label>
             </div>
             <p className="text-xs leading-relaxed text-slate-500">
-              Each simulated year draws random attack attempts for every scenario; each attempt passes or fails each attack step, and every incident gets a
-              severity, a recovery time and costs. Percentiles are of yearly totals, not single incidents, and are not confidence intervals.{" "}
+              Each one-year trial samples attack attempts across every scenario. The model samples severity, recovery time and costs for each incident.
+              The loss percentiles summarize the annual totals across trials.{" "}
               <Kind>Simulated · Monte Carlo</Kind>
             </p>
             {result && <p className="text-xs text-slate-500">{result.res.simulated.note}</p>}

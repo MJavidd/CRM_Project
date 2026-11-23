@@ -162,7 +162,7 @@ export function CrisisSimulator() {
 
       <section aria-labelledby="sim-step-4" className="space-y-3">
         <StepHeading id="sim-step-4" n={4}>
-          How bad could a whole year get?
+          How much could ransomware cost over time?
         </StepHeading>
         <MonteCarloPanel scenarioCount={scenarios.length} />
       </section>

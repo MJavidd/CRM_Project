@@ -351,6 +351,7 @@ def _simulate_and_save(request: SimulationRequest) -> tuple[dict, dict]:
             "uncertainty_mode": mc["uncertainty_mode"],
             "note": mc["note"],
             "strategies": mc["strategies"],
+            "baseline_horizons": horizons["baseline"],
         },
         "analytic": {
             "result_type": "analytic",

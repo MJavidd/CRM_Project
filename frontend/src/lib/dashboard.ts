@@ -24,6 +24,8 @@ export interface DashboardStrategy {
 
 export interface DashboardRun extends RunSummary {
   budget_usd: number;
+  ciso_first_year_cash_usd: number | null;
+  ciso_over_budget_usd: number | null;
   loss_thresholds_usd: number[];
   strategies: Record<string, DashboardStrategy>;
 }

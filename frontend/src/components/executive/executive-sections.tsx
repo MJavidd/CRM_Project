@@ -117,7 +117,7 @@ export function BadYearSection({ selected, budget, names }: { selected: string[]
     <DisclosureSection
       title="How do these strategies perform in a bad ransomware year?"
       icon={<Sigma className="size-4" aria-hidden />}
-      summary="Typical, bad (P90) and very bad (P95) yearly losses for all three strategies, from thousands of simulated years."
+      summary="Typical, bad (P90) and very bad (P95) annual losses for all three strategies, estimated from one-year trials."
     >
       <div className="space-y-3">
         <p className="text-sm text-slate-600">

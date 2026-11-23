@@ -250,6 +250,13 @@ export interface SimulateResponse {
     uncertainty_mode: string;
     note: string;
     strategies: Record<string, StrategyResult>;
+    baseline_horizons: Record<number, {
+      periods: number;
+      mean_loss_usd: number;
+      median_loss_usd: number;
+      p90_loss_usd: number;
+      p95_loss_usd: number;
+    }>;
   };
   analytic: {
     result_type: "analytic";
